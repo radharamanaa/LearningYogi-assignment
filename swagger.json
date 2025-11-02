@@ -1,0 +1,126 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Intelligent Timetable Extraction API",
+    "version": "1.0.0",
+    "description": "API for extracting structured timetable events from PDFs and images."
+  },
+  "paths": {
+    "/api/v1/timetable/upload": {
+      "post": {
+        "summary": "Upload a timetable file (PDF or image)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Extraction result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableExtractionResult"
+                }
+              }
+            }
+          },
+          "400": { "description": "No file uploaded" },
+          "500": { "description": "Failed to process timetable" }
+        }
+      }
+    },
+    "/api/v1/timetable/{id}": {
+      "get": {
+        "summary": "Get extracted timetable by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Extraction result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableExtractionResult"
+                }
+              }
+            }
+          },
+          "404": { "description": "Timetable not found" },
+          "500": { "description": "Failed to fetch timetable" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TimetableEvent": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "description": "Event title" },
+          "startTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start time in ISO 8601 format"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End time in ISO 8601 format"
+          },
+          "location": {
+            "type": "string",
+            "description": "Event location (optional)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Event description (optional)"
+          }
+        },
+        "required": ["title", "startTime", "endTime"]
+      },
+      "TimetableExtractionResult": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "object",
+            "properties": {
+              "filename": { "type": "string" },
+              "mimetype": { "type": "string" },
+              "size": { "type": "integer" },
+              "processedAt": { "type": "string", "format": "date-time" }
+            },
+            "required": ["filename", "mimetype", "size", "processedAt"]
+          },
+          "events": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TimetableEvent" }
+          },
+          "warnings": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["events"]
+      }
+    }
+  }
+}
